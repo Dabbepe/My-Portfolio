@@ -1,7 +1,97 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { ShaderGradientCanvas, ShaderGradient } from '@shadergradient/react';
+import { animate } from 'framer-motion';
 import { SpotlightNavbar } from "@/components/ui/spotlight-navbar";
 import './index.css';
+
+function hslToHex(h, s, l) {
+  l /= 100;
+  const a = s * Math.min(l, 1 - l) / 100;
+  const f = n => {
+    const k = (n + h / 30) % 12;
+    const color = l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1);
+    return Math.round(255 * color).toString(16).padStart(2, '0');
+  };
+  return `#${f(0)}${f(8)}${f(4)}`;
+}
+
+function DynamicBackground() {
+  const [colors, setColors] = useState({ c1: "#94ffd1", c2: "#6bf5ff", c3: "#ffffff" });
+
+  useEffect(() => {
+    let hue = 160; // Start at a nice cyan/mint hue
+    
+    const interval = setInterval(() => {
+      // Advance the hue very slowly around the color wheel
+      // 0.15 degrees every 50ms = 3 degrees per second (120 seconds for full loop)
+      hue = (hue + 0.15) % 360; 
+      
+      // Calculate smooth analogous colors
+      const c1 = hslToHex(hue, 100, 75);
+      const c2 = hslToHex((hue + 45) % 360, 100, 75);
+      
+      setColors({ c1, c2, c3: "#ffffff" });
+    }, 50);
+    
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <ShaderGradientCanvas
+      style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        width: '100vw',
+        height: '100vh',
+        zIndex: -1,
+        pointerEvents: 'none',
+      }}
+    >
+      <ShaderGradient
+        animate="on"
+        axesHelper="off"
+        brightness={1.2}
+        cAzimuthAngle={170}
+        cDistance={4.4}
+        cPolarAngle={70}
+        cameraZoom={1}
+        color1={colors.c1}
+        color2={colors.c2}
+        color3={colors.c3}
+        destination="onCanvas"
+        embedMode="off"
+        envPreset="city"
+        format="gif"
+        fov={45}
+        frameRate={10}
+        gizmoHelper="hide"
+        grain="off"
+        lightType="3d"
+        pixelDensity={1}
+        positionX={0}
+        positionY={0.9}
+        positionZ={-0.3}
+        range="disabled"
+        rangeEnd={40}
+        rangeStart={0}
+        reflection={0.1}
+        rotationX={45}
+        rotationY={0}
+        rotationZ={0}
+        shader="defaults"
+        type="waterPlane"
+        uAmplitude={0}
+        uDensity={1.2}
+        uFrequency={0}
+        uSpeed={0.4}
+        uStrength={3.4}
+        uTime={0}
+        wireframe={false}
+      />
+    </ShaderGradientCanvas>
+  );
+}
 
 function App() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -81,59 +171,7 @@ function App() {
         <div className="loader-text">Initializing Systems...</div>
       </div>
 
-      <ShaderGradientCanvas
-        style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          width: '100vw',
-          height: '100vh',
-          zIndex: -1,
-          pointerEvents: 'none',
-        }}
-      >
-        <ShaderGradient
-          animate="on"
-          axesHelper="off"
-          brightness={1.2}
-          cAzimuthAngle={170}
-          cDistance={4.4}
-          cPolarAngle={70}
-          cameraZoom={1}
-          color1="#94ffd1"
-          color2="#6bf5ff"
-          color3="#ffffff"
-          destination="onCanvas"
-          embedMode="off"
-          envPreset="city"
-          format="gif"
-          fov={45}
-          frameRate={10}
-          gizmoHelper="hide"
-          grain="off"
-          lightType="3d"
-          pixelDensity={1}
-          positionX={0}
-          positionY={0.9}
-          positionZ={-0.3}
-          range="disabled"
-          rangeEnd={40}
-          rangeStart={0}
-          reflection={0.1}
-          rotationX={45}
-          rotationY={0}
-          rotationZ={0}
-          shader="defaults"
-          type="waterPlane"
-          uAmplitude={0}
-          uDensity={1.2}
-          uFrequency={0}
-          uSpeed={0.4}
-          uStrength={3.4}
-          uTime={0}
-          wireframe={false}
-        />
-      </ShaderGradientCanvas>
+      <DynamicBackground />
       <div className="bg-overlay"></div>
 
       <div className="page">
